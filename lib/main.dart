@@ -33,7 +33,8 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final _player = AudioPlayer();
   var audiopath = "";
-  var thumbnailpath = Uint8List(1);
+  var audio_metadata = Metadata();
+  var current_index = -1;
 
   @override
   void initState() {
@@ -51,7 +52,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
 
     MetadataRetriever.fromFile(File(Directory(audiopath).listSync()[0].path))
-        .then((value) => setState(() => thumbnailpath = value.albumArt!));
+        .then((value) => setState(() => audio_metadata = value));
     super.initState();
     ambiguate(WidgetsBinding.instance)!.addObserver(this);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -101,12 +102,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Stack(children: [
-
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -132,6 +131,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   child: StreamBuilder<PositionData>(
                     stream: _positionDataStream,
                     builder: (context, snapshot) {
+                      if(_player.currentIndex != null && _player.currentIndex != current_index ){
+                        MetadataRetriever.fromFile(File(Directory(audiopath).listSync()[_player.currentIndex!].path))
+                            .then((value) => setState(() => audio_metadata = value));
+                        setState(() {
+                          current_index = _player.currentIndex!;
+                        });
+                      }
                       final positionData = snapshot.data;
                       return Transform.rotate(
                           angle: pi,
@@ -178,7 +184,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         child: AspectRatio(
                             aspectRatio: 9 / 16,
                             child: Image(
-                              image: MemoryImage(thumbnailpath),
+                              image: MemoryImage(audio_metadata.albumArt!),
                               fit: BoxFit.cover,
                             ))),
                   ),

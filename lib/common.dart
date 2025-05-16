@@ -125,6 +125,9 @@ class SeekBarState extends State<SeekBar> {
               }
               _dragValue = null;
             },
+            innerWidget: (double value) {
+             return Text(value.toString());
+            },
           ),
         ),
         // Positioned(
